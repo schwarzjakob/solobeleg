@@ -68,7 +68,8 @@ final class InvoiceCoreTests: XCTestCase {
         XCTAssertTrue(xml.contains("§ 19 UStG"))
         XCTAssertTrue(xml.contains("<ram:ID schemeID=\"FC\">12/345/67890</ram:ID>"))
         // Without a VAT ID the Steuernummer also serves as seller identifier (rule BR-CO-26).
-        XCTAssertTrue(xml.contains("<ram:SellerTradeParty>\n      <ram:ID>12/345/67890</ram:ID>"))
+        let compact = xml.components(separatedBy: .whitespacesAndNewlines).joined()
+        XCTAssertTrue(compact.contains("<ram:SellerTradeParty><ram:ID>12/345/67890</ram:ID>"))
         XCTAssertTrue(xml.contains("<ram:GrandTotalAmount>450.00</ram:GrandTotalAmount>"))
         XCTAssertTrue(invoice.validate().isEmpty)
     }
