@@ -7,6 +7,7 @@ let package = Package(
     products: [.library(name: "InvoiceCore", targets: ["InvoiceCore"])],
     targets: [
         .target(name: "InvoiceCore"),
+        .executableTarget(name: "invoice-samples", dependencies: ["InvoiceCore"]),
         .testTarget(name: "InvoiceCoreTests", dependencies: ["InvoiceCore"]),
     ]
 )

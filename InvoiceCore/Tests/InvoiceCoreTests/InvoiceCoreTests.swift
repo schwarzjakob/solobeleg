@@ -48,6 +48,8 @@ final class InvoiceCoreTests: XCTestCase {
         let document = try XMLDocument(xmlString: xml)
         XCTAssertEqual(document.rootElement()?.name, "rsm:CrossIndustryInvoice")
         XCTAssertTrue(xml.contains("xrechnung_3.0"))
+        XCTAssertTrue(xml.contains("<ram:ID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ram:ID>"))
+        XCTAssertFalse(CIIWriter(profile: .en16931).xml(for: invoice).contains("BusinessProcessSpecifiedDocumentContextParameter"))
         XCTAssertTrue(xml.contains("<udt:DateTimeString format=\"102\">20261115</udt:DateTimeString>"))
         XCTAssertTrue(xml.contains("<ram:Name>Muster &amp; Söhne GmbH</ram:Name>"))
         XCTAssertTrue(xml.contains("Beratung &lt;Workshop&gt;"))
@@ -65,6 +67,8 @@ final class InvoiceCoreTests: XCTestCase {
         XCTAssertTrue(xml.contains("<ram:CategoryCode>E</ram:CategoryCode>"))
         XCTAssertTrue(xml.contains("§ 19 UStG"))
         XCTAssertTrue(xml.contains("<ram:ID schemeID=\"FC\">12/345/67890</ram:ID>"))
+        // Without a VAT ID the Steuernummer also serves as seller identifier (rule BR-CO-26).
+        XCTAssertTrue(xml.contains("<ram:SellerTradeParty>\n      <ram:ID>12/345/67890</ram:ID>"))
         XCTAssertTrue(xml.contains("<ram:GrandTotalAmount>450.00</ram:GrandTotalAmount>"))
         XCTAssertTrue(invoice.validate().isEmpty)
     }

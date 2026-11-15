@@ -7,6 +7,14 @@ public enum InvoiceProfile: Sendable {
     /// German XRechnung 3.0 (CIUS of EN 16931).
     case xrechnung
 
+    /// XRechnung requires a business process identifier; plain EN 16931 does not.
+    var businessProcessID: String? {
+        switch self {
+        case .en16931: return nil
+        case .xrechnung: return "urn:fdc:peppol.eu:2017:poacc:billing:01:1.0"
+        }
+    }
+
     var guidelineID: String {
         switch self {
         case .en16931: return "urn:cen.eu:en16931:2017"
@@ -35,6 +43,11 @@ public struct CIIWriter {
         ])
 
         x.open("rsm:ExchangedDocumentContext")
+        if let process = profile.businessProcessID {
+            x.open("ram:BusinessProcessSpecifiedDocumentContextParameter")
+            x.leaf("ram:ID", process)
+            x.close()
+        }
         x.open("ram:GuidelineSpecifiedDocumentContextParameter")
         x.leaf("ram:ID", profile.guidelineID)
         x.close()
@@ -152,6 +165,13 @@ public struct CIIWriter {
 
     private func party(_ element: String, _ party: Party, into x: inout XMLBuilder) {
         x.open(element)
+        // EN 16931 rule BR-CO-26 wants the seller identified by a VAT ID, a legal registration or a
+        // seller identifier. Sellers with only a Steuernummer (typically Kleinunternehmer) have no
+        // VAT ID, so the Steuernummer doubles as the seller identifier.
+        if element == "ram:SellerTradeParty", (party.vatID ?? "").isEmpty,
+           let taxNumber = party.taxNumber, !taxNumber.isEmpty {
+            x.leaf("ram:ID", taxNumber)
+        }
         x.leaf("ram:Name", party.name)
         if party.contactName != nil || party.phone != nil || party.email != nil {
             x.open("ram:DefinedTradeContact")
